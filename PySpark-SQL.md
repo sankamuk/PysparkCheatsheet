@@ -8,6 +8,7 @@
 
 - Method 1 : From RDD
 
+```
 >>> kv_rdd = sc.parallelize(range(1, 20)).map(lambda x: (x, random.random()))       
 >>> kv_df = kv_rdd.toDF(['i', 'v'])
 
@@ -30,9 +31,11 @@ root
 
 >>> kv_df.count()
 19
+```
 
 - Method 2: From RDD with explicit Schema
 
+```
 >>> from pyspark.sql.types import StructType, StructField, StringType, LongType
 
 >>> schma_1 = StructType([StructField('name', StringType()), StructField('salary', LongType())])
@@ -49,9 +52,11 @@ root
 | kun|  2345|
 | xun|  1633|
 +----+------+
+```
 
 - Method 3: From Datasource
 
+```
 spark.read.format(...).option("key", value").schema(...).load()
 
 format = json, parquet, jdbc, orc, csv, text
@@ -77,9 +82,11 @@ spark.read.format("text")
 
 > In case you have created your custom datasource it will be like:
 > spark.read.format("muk.san.custom_source")
+```
 
 - Text
 
+```
 (mypython) apples-MacBook-Air:TEST apple$ cat file.txt 
 San 32 5000
 Jade 31 5500
@@ -100,10 +107,11 @@ root
 |Jade 31 5500|
 | Kun 30 6000|
 +------------+
-
+```
 
 - CSV
 
+```
 (mypython) apples-MacBook-Air:pyspark apple$ echo "name,age,salary" > emp.csv ; cat file.txt | tr " " "," >> emp.csv
 
 >>> emp_df = spark.read.option('header','true').option('sep', ',').csv('/Users/apple/TEST/pyspark/emp.csv')
@@ -118,11 +126,13 @@ root
  |-- name: string (nullable = true)
  |-- age: long (nullable = true)
  |-- salary: long (nullable = true)
+```
 
 - JSON
 
 > Use samplingRatio to avoid Spark do the sampling for the whole file. Rather only sample portion of the file for Schema inference.
 
+```
 (mypython) apples-MacBook-Air:pyspark apple$ cat emp.json 
 [{ 'name': 'San',
 'age': 32,
@@ -185,7 +195,7 @@ root
  |-- name: string (nullable = true)
  |-- age: long (nullable = true)
  |-- salary: long (nullable = true)
-
+```
 
 > If Spark fail Row parsing with schema, it sets all value of Row as null. In case you can ask Spark to fail with option option("mode","failFast"). Spark will throw RuntimeException.
 
@@ -194,7 +204,7 @@ root
 
 > Its popularity is because it is a self-describing data format and it stores data columnar storage format and in a highly compact structure by leveraging compressions. 
 
-
+```
 >>> emp_df_pq = spark.read.parquet('/Users/apple/TEST/pyspark/emp.parquet')
 >>> emp_df_pq.show()
 +----+---+------+
@@ -210,10 +220,11 @@ root
  |-- name: string (nullable = true)
  |-- age: long (nullable = true)
  |-- salary: long (nullable = true)
-
+```
 
 - JDBC
 
+```
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--jars /data/mysql/mysql-connector-java-5.1.48/mysql-connector-java-5.1.48.jar pyspark-shell'
 
 df_mysql = spark.read.format("jdbc")
@@ -233,7 +244,7 @@ df_mysql.show()
 |Jade| 31|  5500|
 | Kun| 30|  6000|
 +----+---+------+
-
+```
 
 ### 2. DataFrames Transformation
 
@@ -241,6 +252,7 @@ df_mysql.show()
 
 - Select
 
+```
 >>> emp_df.select('name').show()
 +----+
 |name|
@@ -295,10 +307,11 @@ df_mysql.show()
 |Jade| 38.75|
 | Kun| 37.50|
 +----+------+
-
+```
 
 - Filter
 
+```
 >>> emp_df.filter(emp_df['salary'] > 5000).show()
 +----+---+------+
 |name|age|salary|
@@ -329,10 +342,11 @@ df_mysql.show()
 | San| 32|  5000|
 |Jade| 31|  5500|
 +----+---+------+
-
+```
 
 - Distinct
 
+```
 >>> emp_df.filter(length(emp_df['name']) < 4 ).select(length(emp_df['name'])).show()
 +------------+
 |length(name)|
@@ -347,10 +361,11 @@ df_mysql.show()
 +------------+
 |           3|
 +------------+
-
+```
 
 - Sort & Order By
 
+```
 >>> emp_df.sort('salary').show()
 +----+---+------+
 |name|age|salary|
@@ -368,20 +383,22 @@ df_mysql.show()
 |Jade| 31|  5500|
 | San| 32|  5000|
 +----+---+------+
-
+```
 
 - Limiting
 
+```
 >>> emp_df.orderBy('age', 'salary').limit(1).show()
 +----+---+------+
 |name|age|salary|
 +----+---+------+
 | Kun| 30|  6000|
 +----+---+------+
-
+```
 
 - Union
 
+```
 >>> new_emp = spark.createDataFrame([('xun', 30, 7000)], schma_emp)
 >>> new_emp.show()
 +----+---+------+
@@ -399,9 +416,11 @@ df_mysql.show()
 | Kun| 30|  6000|
 | xun| 30|  7000|
 +----+---+------+
+```
 
 - Add Column
 
+```
 >>> emp_df.withColumn('cars', (emp_df['age'] - emp_df['age']) + random.randint(2,6)).show()
 +----+---+------+----+
 |name|age|salary|cars|
@@ -410,10 +429,11 @@ df_mysql.show()
 |Jade| 31|  5500|   4|
 | Kun| 30|  6000|   4|
 +----+---+------+----+
-
+```
 
 - Rename Column
 
+```
 >>> emp_df.withColumnRenamed('salary', 'pay').show()
 +----+---+----+
 |name|age| pay|
@@ -422,10 +442,11 @@ df_mysql.show()
 |Jade| 31|5500|
 | Kun| 30|6000|
 +----+---+----+
-
+```
 
 - Drop Column
 
+```
 >>> emp_df.drop('age').show()
 +----+------+
 |name|salary|
@@ -434,19 +455,21 @@ df_mysql.show()
 |Jade|  5500|
 | Kun|  6000|
 +----+------+
-
+```
 
 - Sample
 
+```
 >>> emp_df.sample(True, 0.6).show()
 +----+---+------+
 |name|age|salary|
 +----+---+------+
 | San| 32|  5000|
 +----+---+------+
-
+```
 > To make sampling predictable we add seed
 
+```
 >>> emp_df.sample(True, 0.6, 1).show()
 +----+---+------+
 |name|age|salary|
@@ -455,6 +478,7 @@ df_mysql.show()
 | Kun| 30|  6000|
 +----+---+------+
 
+
 >>> emp_df.sample(True, 0.6, 1).show()
 +----+---+------+
 |name|age|salary|
@@ -462,10 +486,11 @@ df_mysql.show()
 | San| 32|  5000|
 | Kun| 30|  6000|
 +----+---+------+
-
+```
 
 - Split Dataframe
 
+```
 >>> df1, df2 = emp_df.randomSplit([0.2, 0.8])
 >>> df1.show()
 +----+---+------+
@@ -481,13 +506,14 @@ df_mysql.show()
 +----+---+------+
 | San| 32|  5000|
 +----+---+------+
-
+```
 
 ### 3. DataFrames Handling Invalid Data
 
 
 - Drop if any column invalid
 
+```
 >>> final_df.show()
 +----+----+------+
 |name| age|salary|
@@ -507,10 +533,11 @@ df_mysql.show()
 |Jade| 31|  5500|
 | Kun| 30|  6000|
 +----+---+------+
-
+```
 
 - Drop if All column invalid
 
+```
 >>> final_df.na.drop('all').show()
 +----+---+------+
 |name|age|salary|
@@ -520,9 +547,11 @@ df_mysql.show()
 | Kun| 30|  6000|
 | xun| 30|  null|
 +----+---+------+
+```
 
 - Select Column to check
 
+```
 >>> final_df.na.drop('any',subset=['name', 'age']).show()
 +----+---+------+
 |name|age|salary|
@@ -532,9 +561,11 @@ df_mysql.show()
 | Kun| 30|  6000|
 | xun| 30|  null|
 +----+---+------+
+```
 
 - Describe
 
+```
 >>> final_df.describe('age').show()
 +-------+------------------+
 |summary|               age|
@@ -548,12 +579,13 @@ df_mysql.show()
 
 >>> final_df.count()
 5
-
+```
 
 ### 3. DataFrames Action
 
 - Show
 
+```
 >>> emp_df.show(1, truncate=False)
 +---+----+------+
 |age|name|salary|
@@ -561,27 +593,33 @@ df_mysql.show()
 |32 |San |5000  |
 +---+----+------+
 only showing top 1 row
+```
 
 > Truncate avoid column truncation while showing
 
 - Head/First/Take
 
+```
 >>> emp_df.first()
 Row(age=32, name='San', salary=5000)
 >>> emp_df.head(1)
 [Row(age=32, name='San', salary=5000)]
 >>> emp_df.take(1)
 [Row(age=32, name='San', salary=5000)]
+```
 
 - Collect
-
+```
 >>> emp_df.collect()
 [Row(age=32, name='San', salary=5000), Row(age=31, name='Jade', salary=5500), Row(age=30, name='Kun', salary=6000)]
+```
 
 - Count
 
+```
 >>> emp_df.count()
 3
+```
 
 ### 4. SQL
 
@@ -591,6 +629,7 @@ Row(age=32, name='San', salary=5000)
 
 - List metadata catalog
 
+```
 >>> spark.catalog.listTables()
 []
 
@@ -604,9 +643,11 @@ Row(age=32, name='San', salary=5000)
 [Database(name='default', description='Default Hive database', locationUri='file:/Users/apple/TEST/spark/spark-kubernetes-master/BUILD_BINARY/spark/spark2/bin/spark-warehouse')]
 
 >>> emp_df.createOrReplaceGlobalTempView('empg')
+```
 
 - Query
 
+```
 >>> spark.sql('select * from emp').show()
 +---+----+------+
 |age|name|salary|
@@ -668,10 +709,11 @@ Row(age=32, name='San', salary=5000)
 +--------+
 |       3|
 +--------+
+```
 
 > Note to access Global view you need to prefix viewname with global_temp
 
-
+```
 >>> spark.sql("select * from parquet.`/Users/apple/TEST/pyspark/emp.parquet`").show()
 +----+---+------+                                                               
 |name|age|salary|
@@ -680,6 +722,7 @@ Row(age=32, name='San', salary=5000)
 |Jade| 31|  5500|
 | Kun| 30|  6000|
 +----+---+------+
+```
 
 > Note above we read data directly from Parquet file
 
@@ -692,6 +735,7 @@ Row(age=32, name='San', salary=5000)
 
 > If the output directory exist you can choose one mode append, overwrite, error|errorIfExists|default, ignore to control behaviour.
 
+```
 >>> emp_df.write.format('csv').mode('append').option('sep', '|').save('/Users/apple/TEST/pyspark/output1')
 >>>
 
@@ -729,9 +773,11 @@ apples-MacBook-Air:pyspark apple$ cat output1/*.csv
 31|Jade|5500
 30|Kun|6000
 xun|30|7000
+```
 
 - Number of Partition
 
+```
 >>> emp_df.rdd.getNumPartitions()
 5
 
@@ -739,10 +785,11 @@ xun|30|7000
 
 >>> emp_df.rdd.getNumPartitions()
 1
-
+```
 
 - Partition
 
+```
 >>> emp_df.write.partitionBy('age').save('/Users/apple/TEST/pyspark/output2')
 >>>
 
@@ -752,20 +799,23 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=30
 drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=31
 drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 -rw-r--r--  1 apple  staff    0 Feb 18 00:38 _SUCCESS
-
+```
 
 - Persistane
 
+```
 >>> emp_df.createOrReplaceTempView('emp')
 >>> spark.catalog.cacheTable('emp')
 >>> emp_df.count()
 4
+```
 
 > Note we trigger the action count so that the Persistance operation cacheTable materialises.
 
 
 ### 6. Aggregation
 
+```
 >>> df1 = spark.createDataFrame([('san', 32, 5000), ('kun', 33, 5500), ('jade', 34, 5500), ('xun', 31, 6000)], ['name', 'age', 'pay'])
 >>> df1.show()
 +----+---+----+                                                                 
@@ -776,9 +826,10 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 |jade| 34|5500|
 | xun| 31|6000|
 +----+---+----+
+```
 
 - Count
-
+```
 >>> df1.count()
 4
 
@@ -825,11 +876,13 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 +----------+
 |         5|
 +----------+
+```
 
 > Count doesnot count Null values.
 
 - Count Distinct
 
+```
 >>> from pyspark.sql.functions import countDistinct
 >>> df1.select(countDistinct(df1.pay)).show()
 +-------------------+                                                           
@@ -844,10 +897,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 +----------+
 |         4|
 +----------+
-
+```
 
 - Approx distinct count
 
+```
 >>> from pyspark.sql.functions import approx_count_distinct
 >>> df1.select(approx_count_distinct(df1.pay, 0.05)).show()
 +--------------------------+
@@ -855,10 +909,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 +--------------------------+
 |                         4|
 +--------------------------+
-
+```
 
 - Sum, Min, Max
 
+```
 >>> from pyspark.sql.functions import sum, max, min, sumDistinct
 >>> df1.select(sum(df1.pay), sumDistinct(df1.pay), max(df1.pay), min(df1.pay)).show()                                        
 +--------+-----------------+--------+--------+                                  
@@ -866,10 +921,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 +--------+-----------------+--------+--------+
 |   25500|            20000|    6000|    3500|
 +--------+-----------------+--------+--------+
-
+```
 
 - Statistical averages
 
+```
 >>> from pyspark.sql.functions import avg, skewness, kurtosis, variance, stddev
 >>> df1.select(avg(df1.pay), skewness(df1.pay), kurtosis(df1.pay), variance(df1.pay), stddev(df1.pay)).show()
 +--------+------------------+-------------------+-------------+-----------------+
@@ -877,10 +933,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 +--------+------------------+-------------------+-------------+-----------------+
 |  5100.0|-1.017952296026958|-0.3480642804967129|     925000.0|961.7692030835673|
 +--------+------------------+-------------------+-------------+-----------------+
-
+```
 
 - Group aggreegation
 
+```
 >>> df1.groupBy('age').count().show()
 +---+-----+
 |age|count|
@@ -948,11 +1005,12 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | 33|             [kun]|            [kun]|
 | 35|           [geome]|          [geome]|
 +---+------------------+-----------------+
-
+```
 
 
 - Average over Pivoting
 
+```
 >>> df1.groupBy('age').pivot('name').avg('pay').show()
 +---+------+------+------+------+----+------+                                   
 |age| geome|  jade|   kun|   san|slim|   xun|
@@ -963,10 +1021,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | 33|  null|  null|5500.0|  null|null|  null|
 | 35|3500.0|  null|  null|  null|null|  null|
 +---+------+------+------+------+----+------+
-
+```
 
 ### 7. Join
 
+```
 >>> df1 = spark.createDataFrame([('san', 32, 5000), ('kun', 33, 5500), ('jade', 34, 5500), ('xun', 31, 6000)], ['name', 'age', 'pay'])
 >>> df1.show()
 +----+---+----+                                                                 
@@ -987,10 +1046,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | jade|  berut|
 |jewel|  delhi|
 +-----+-------+
-
+```
 
 - Inner
 
+```
 >>> df1.join(df2, df1['name'] == df2['name'], 'inner').show()
 +----+---+----+----+-------+
 |name|age| pay|name|   city|
@@ -1010,10 +1070,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | san| 32|5000| san|kolkata|
 |jade| 34|5500|jade|  berut|
 +----+---+----+----+-------+
-
+```
 
 - Left Outer
 
+```
 >>> df1.join(df2, df1['name'] == df2['name'], 'left_outer').show()
 +----+---+----+----+-------+
 |name|age| pay|name|   city|
@@ -1033,10 +1094,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | xun| 31|6000|null|   null|
 |jade| 34|5500|jade|  berut|
 +----+---+----+----+-------+
-
+```
 
 - Right Outer
 
+```
 >>> df1.join(df2, df1['name'] == df2['name'], 'right_outer').show()
 +----+----+----+-----+-------+
 |name| age| pay| name|   city|
@@ -1054,9 +1116,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 |null|null|null|jewel|  delhi|
 |jade|  34|5500| jade|  berut|
 +----+----+----+-----+-------+
+```
 
 - Full Outer
 
+```
 >>> df1.join(df2, df1['name'] == df2['name'], 'outer').show()
 +----+----+----+-----+-------+
 |name| age| pay| name|   city|
@@ -1078,11 +1142,12 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | xun|  31|6000| null|   null|
 |jade|  34|5500| jade|  berut|
 +----+----+----+-----+-------+
-
+```
 
 
 - Anti and Semi
 
+```
 >>> df1.join(df2, df1['name'] == df2['name'], 'left_anti').show()
 +----+---+----+
 |name|age| pay|
@@ -1098,10 +1163,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | san| 32|5000|
 |jade| 34|5500|
 +----+---+----+
-
+```
 
 - Cross Join
 
+```
 >>> df1.crossJoin(df2).show()
 +----+---+----+-----+-------+
 |name|age| pay| name|   city|
@@ -1119,11 +1185,11 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | xun| 31|6000| jade|  berut|
 | xun| 31|6000|jewel|  delhi|
 +----+---+----+-----+-------+
+```
 
+- Column Operation
 
-- oulum Operation
-
-
+```
 >>> df3 = df2.withColumn('workplace', df2['city'])
 >>> df3.show()
 +-----+-------+---------+
@@ -1133,7 +1199,7 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 | jade|  berut|    berut|
 |jewel|  delhi|    delhi|
 +-----+-------+---------+
-
+```
 
 ### 8. Join Strategy
 
@@ -1150,7 +1216,7 @@ drwxr-xr-x  4 apple  staff  128 Feb 18 00:38 age=32
 
 Spark automatically choose join type but hint can be provided
 
-
+```
 >>> from pyspark.sql.functions import broadcast
 >>> df1.join(broadcast(df2), df1['name'] == df2['name'], 'inner').show()
 +----+---+----+----+-------+
@@ -1178,7 +1244,7 @@ Spark automatically choose join type but hint can be provided
 +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, string, false]))
    +- *(1) Filter isnotnull(name#16)
       +- Scan ExistingRDD[name#16,city#17]
-
+```
 
 
 ### 9. Buildin Functions
@@ -1187,6 +1253,7 @@ Spark automatically choose join type but hint can be provided
 
 - Date
 
+```
 >>> from pyspark.sql.functions import to_date
 >>> 
 >>> df4 = spark.createDataFrame([('jade', '1985-04-12'), ('kun', '1986-05-30')], ['name', 'dob'])
@@ -1247,10 +1314,11 @@ from pyspark.sql.functions import concat_ws, lower, concat, upper, translate
 |                 jade|jade|
 |                  xun| kun|
 +---------------------+----+
-
+```
 
 - Math 
 
+```
 from pyspark.sql.functions import round
 
 >>> df1.select( round(df1['pay']/df1['age']).alias('parbyage') ).show()
@@ -1262,9 +1330,11 @@ from pyspark.sql.functions import round
 |   162.0|
 |   194.0|
 +--------+
+```
 
 - Mislenious
 
+```
 >>> from pyspark.sql.functions import monotonically_increasing_id, when
 
 
@@ -1287,10 +1357,11 @@ from pyspark.sql.functions import round
 | jade|nonindian|
 |jewel|nonindian|
 +-----+---------+
-
+```
 
 ### 10. User Defined Function (UDF)
 
+```
 >>> from pyspark.sql.types import StringType
 >>> from pyspark.sql.functions import udf
 
@@ -1333,10 +1404,11 @@ from pyspark.sql.functions import round
 |  2|        even|
 |  3|         odd|
 +---+------------+
-
+```
 
 ### 11. Cube & Rollup
 
+```
 >>> from pyspark.sql.functions import sum
 
 df1 = spark.createDataFrame([('san', 32, 'india'), ('kun', 33, 'china'), ('jade', 34, 'india'), ('xun', 31, 'china')], ['name', 'age', 'country'])
@@ -1394,10 +1466,11 @@ df2 = spark.createDataFrame([('san', 'kolkata', 32, 'india'), ('kun', 'tiangen',
 |tiangen|   null|      33|
 |tiangen|  china|      33|
 +-------+-------+--------+
-
+```
 
 - Cube (Special case of Rollup where aggregation is done with all possible column combination)
 
+```
 >>> df2.cube('city', 'country').agg(sum('age')).orderBy('city', 'country').show()
 +-------+-------+--------+                                                      
 |   city|country|sum(age)|
@@ -1412,12 +1485,13 @@ df2 = spark.createDataFrame([('san', 'kolkata', 32, 'india'), ('kun', 'tiangen',
 |tiangen|   null|      33|
 |tiangen|  china|      33|
 +-------+-------+--------+
-
+```
 
 ### 12. Windowing
 
 https://www.kaggle.com/sudalairajkumar/novel-corona-virus-2019-dataset/version/20
 
+```
 >>> cdf = spark.read.option('header','true').csv('2019_nCoV_data.csv')
 >>> cdf.printSchema()
 root
@@ -1451,11 +1525,12 @@ root
 |  4|2020-01-22 12:00:00|   Fujian|  China|2020-01-22 12:00:00|        1|     0|        0|
 |  5|2020-01-22 12:00:00|    Gansu|  China|2020-01-22 12:00:00|        0|     0|        0|
 +---+-------------------+---------+-------+-------------------+---------+------+---------+
-
+```
 
 
 - Weekwise windows (Tumbling Window)
 
+```
 >>> cdfclean.groupBy(window('date', '1 week')).avg('confirmed').show(truncate=False)
 +------------------------------------------+------------------+
 |window                                    |avg(confirmed)    |
@@ -1496,10 +1571,11 @@ root
 |2020-02-06 01:00:00|2020-02-13 01:00:00|572.0|
 |2020-02-13 01:00:00|2020-02-20 01:00:00|922.0|
 +-------------------+-------------------+-----+
-
+```
 
 - 2 Weekly Average Every 3 Days (Sliding Window)
 
+```
 >>> cdfclean.groupBy(window('date', '2 week', '3 day')).agg(avg('confirmed').alias('weekly_case')).orderBy('weekly_case').select('window.start', 'window.end', round('weekly_case').alias('cases')).show()
 +-------------------+-------------------+-----+
 |              start|                end|cases|
@@ -1519,10 +1595,11 @@ root
 |2020-02-14 01:00:00|2020-02-28 01:00:00|935.0|
 |2020-02-17 01:00:00|2020-03-02 01:00:00|977.0|
 +-------------------+-------------------+-----+
-
+```
 
 - Custom windows
 
+```
 >>> from pyspark.sql import Window
 
 - Moving average of 3 pay window per name
@@ -1541,10 +1618,11 @@ df1 = spark.createDataFrame([("John", "2017-07-06", 27.33),("John", "2017-07-04"
 |John|2017-07-04|21.72|          25.0|
 |John|2017-07-06|27.33|          25.0|
 +----+----------+-----+--------------+
-
+```
 
 - Differnce of pay from max pay per name
 
+```
 >>> er = Window.partitionBy('name').orderBy('date').rangeBetween(Window.unboundedPreceding,Window.unboundedFollowing)
 >>> amntdiff = max(df1['pay']).over(er) - df1['pay']
 >>> df1.select('name', 'date', 'pay', round(amntdiff).alias('diff_2_max')).show()
@@ -1557,12 +1635,13 @@ df1 = spark.createDataFrame([("John", "2017-07-06", 27.33),("John", "2017-07-04"
 |John|2017-07-04|21.72|       6.0|
 |John|2017-07-06|27.33|       0.0|
 +----+----------+-----+----------+
-
+```
 
 ### 12. Optimisation
 
 - Show physical plan
 
+```
 >>> df1.select('name', 'date', 'pay', round(amntdiff).alias('diff_2_max')).explain()
 == Physical Plan ==
 *(2) Project [name#1200, date#1201, pay#1202, round((_we0#2505 - pay#1202), 0) AS diff_2_max#2504]
@@ -1570,10 +1649,11 @@ df1 = spark.createDataFrame([("John", "2017-07-06", 27.33),("John", "2017-07-04"
    +- *(1) Sort [name#1200 ASC NULLS FIRST, date#1201 ASC NULLS FIRST], false, 0
       +- Exchange hashpartitioning(name#1200, 200)
          +- Scan ExistingRDD[name#1200,date#1201,pay#1202]
-
+```
 
 - Detailed Optimisation
 
+```
 >>> df1.select('name', 'date', 'pay', round(amntdiff).alias('diff_2_max')).explain(True)
 == Parsed Logical Plan ==
 'Project [unresolvedalias('name, None), unresolvedalias('date, None), unresolvedalias('pay, None), round((max(pay#1202) windowspecdefinition('name, 'date ASC NULLS FIRST, specifiedwindowframe(RangeFrame, unboundedpreceding$(), unboundedfollowing$())) - pay#1202), 0) AS diff_2_max#2510]
@@ -1598,5 +1678,5 @@ Project [name#1200, date#1201, pay#1202, round((_we0#2511 - pay#1202), 0) AS dif
    +- *(1) Sort [name#1200 ASC NULLS FIRST, date#1201 ASC NULLS FIRST], false, 0
       +- Exchange hashpartitioning(name#1200, 200)
          +- Scan ExistingRDD[name#1200,date#1201,pay#1202]
-
+```
 
