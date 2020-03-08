@@ -250,13 +250,17 @@ Batch: 0
 
 
 >>> omsdf = joindf.writeStream.format("console").option("truncate", "false").outputMode("append").start()
+```
 
+=> Pushing data 
+```
 apples-MacBook-Air:pyspark apple$ cat stream/input/f1.json; cp stream/input/f1.json stream/monitor/
 {"id":"phone1","action":"open","ts":"2018-03-02T10:02:33"}
 {"id":"phone2","action":"open","ts":"2018-03-02T10:03:35"}
 {"id":"phone3","action":"open","ts":"2018-03-02T10:03:50"}
 {"id":"phone1","action":"close","ts":"2018-03-02T10:04:35"}
 ```
+
 OUTPUT
 ```
 -------------------------------------------                                     
@@ -267,6 +271,7 @@ Batch: 0
 +---+------+---+---+------+---+
 +---+------+---+---+------+---+
 ```
+
 => Pushing data in second Dataframe
 ```
 apples-MacBook-Air:pyspark apple$ cat stream/input/e1.json ; cp stream/input/e1.json stream/health/
@@ -275,6 +280,7 @@ apples-MacBook-Air:pyspark apple$ cat stream/input/e1.json ; cp stream/input/e1.
 {"id":"phone3","health":"good","ts":"2018-03-02T10:03:50"}
 {"id":"phone1","health":"bad","ts":"2018-03-02T11:14:35"}
 ```
+
 OUTPUT
 ```
 -------------------------------------------                                     
@@ -291,11 +297,14 @@ Batch: 1
 |phone2|open  |2018-03-02 10:03:35|phone2|good  |2018-03-02 10:03:35|
 +------+------+-------------------+------+------+-------------------+
 ```
+
 => Adding new data
+```
 apples-MacBook-Air:pyspark apple$ cat stream/input/f2.json; cp stream/input/f2.json stream/monitor/
 {"id":"phone3","action":"close","ts":"2018-03-02T10:07:35"}
 {"id":"phone4","action":"open","ts":"2018-03-02T10:07:50"}
 ```
+
 OUTPUT
 ```
 -------------------------------------------                                     
@@ -309,6 +318,7 @@ Batch: 2
 ```
 
 => Adding out of Watermark data not considered
+```
 apples-MacBook-Air:pyspark apple$ cat stream/input/f4.json; cp stream/input/f4.json stream/monitor/
 {"id":"phone3","action":"close","ts":"2018-03-02T04:07:35"}
 {"id":"phone4","action":"open","ts":"2018-03-02T05:07:50"}
@@ -329,6 +339,7 @@ Batch: 3
 apples-MacBook-Air:pyspark apple$ cat stream/input/e2.json; cp stream/input/e2.json stream/health/
 {"id":"phone4","health":"good","ts":"2018-03-02T10:12:33"}
 ```
+
 OUTPUT
 ```
 -------------------------------------------                                     
@@ -404,10 +415,16 @@ Batch: 1
 ### 6. Output Modes
 
 - Stateless stream query: performs transformation before writting data to sink. Cleaning, Filter, Transforming, Partitioning, Saving in new format. Only APPEND output mode is applicable.
-	* Error for wrong output mode : org.apache.spark.sql.AnalysisException: Complete output mode not supported when there are no streaming aggregations on streaming DataFrames/Datasets;
+	* Error for wrong output mode : 
+	```
+	org.apache.spark.sql.AnalysisException: Complete output mode not supported when there are no streaming aggregations on streaming DataFrames/Datasets;
+	```
 
 - Stateful stream query: includes aggregation and need to preserve state. Here the aggregated state need to be maintained to process output with the newly arrived data along with previous aggregation output to get new output. COMPLETE and UPDATE output modes are appropriate for the stateful query type with the aggregation state implicitly maintained by the Structured Streaming engine.
-	* Error for wrong output mode : org.apache.spark.sql.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;
+	* Error for wrong output mode : 
+	```
+	org.apache.spark.sql.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;
+	```
 
 - Statefull with Watermark: with aggregation with watermark APPEND output mode is applicable. This is because after watermark old state is removed and new states are added.
 
@@ -424,10 +441,12 @@ NOTE: For any trigger mode to act you need data, thus computation in streaming w
 >>> msdf = spark.readStream.schema(mbscm).json('/Users/apple/TEST/pyspark/stream/monitor/')
 >>> opdf = msdf.writeStream.outputMode("append").format("console").trigger(processingTime='50 seconds').start()
 ```
+
 => Copy data
 ```
 apples-MacBook-Air:pyspark apple$ cp stream/input/f3.json stream/input/f4.json stream/monitor/
 ```
+
 => Processing start after 50 seconds
 ```
 >>> -------------------------------------------
@@ -538,15 +557,19 @@ Batch: 0
 
 - State Maintainance
 
-The intermediate state is stored in an in-memory, versioned, key-value “state store” on the Spark executors, and it is written out to a write-ahead log, which should be configured to reside in a stable storage system like HDFS. At every trigger point, the state is read and updated in the in-memory state store and then written out to the write-ahead log. In the case of a failure and when a Spark Structured Streaming application is restarted, the state is restored from the write-ahead log and resumes from that point. This fault-tolerant state management obviously incurs some resource and processing overhead in the Structured Streaming engine. The amount of overhead is proportional to the amount of state it needs to maintain Therefore, it is important keep the amount of state in an acceptable size; in other words, the size of the state should not grow indefinitely.
+	~ The intermediate state is stored in an in-memory, versioned, key-value “state store” on the Spark executors, and it is written out to a write-ahead log, which should be configured to reside in a stable storage system like HDFS. At every trigger point, the state is read and updated in the in-memory state store and then written out to the write-ahead log. In the case of a failure and when a Spark Structured Streaming application is restarted, the state is restored from the write-ahead log and resumes from that point. This fault-tolerant state management obviously incurs some resource and processing overhead in the Structured Streaming engine. The amount of overhead is proportional to the amount of state it needs to maintain Therefore, it is important keep the amount of state in an acceptable size; in other words, the size of the state should not grow indefinitely.
 
-Watermarking is a commonly used technique in streaming processing engines to deal with late data as well as to limit the amount of state needed to maintain it.
+	~ Watermarking is a commonly used technique in streaming processing engines to deal with late data as well as to limit the amount of state needed to maintain it.
 
-Condition for Watermarking
-	1. The output mode can’t be the complete mode and must be in either update or append mode.
-	2. The aggregation via the groupBy transformation must be directly on the event-time column or a window on the event- time column.
-	3. The event-time column specified in the Watermark API and the groupBy transformation must be the same one.
-	4. When setting up a streaming DataFrame, the Watermark API must be called before the groupBy transformation is called; otherwise, it will be ignored.
+	~ Condition for Watermarking
+
+		* The output mode can’t be the complete mode and must be in either update or append mode.
+
+		* The aggregation via the groupBy transformation must be directly on the event-time column or a window on the event- time column.
+
+		* The event-time column specified in the Watermark API and the groupBy transformation must be the same one.
+
+		* When setting up a streaming DataFrame, the Watermark API must be called before the groupBy transformation is called; otherwise, it will be ignored.
 
 
 - Arbitrary Stateful Processing - NOT SUPPORTED
@@ -572,6 +595,7 @@ apples-MacBook-Air:pyspark apple$ cat stream/input/f4.json ; cp stream/input/f4.
 {"id":"phone3","action":"close","ts":"2018-03-02T04:07:35"}
 {"id":"phone4","action":"open","ts":"2018-03-02T05:07:50"}
 ```
+
 Output
 
 ```
