@@ -1,6 +1,6 @@
 ## Streaming
 
-###1. General Operations
+### 1. General Operations
 
 - Running computation logic through an unbunded dataset.
 
@@ -32,7 +32,7 @@
 	2. Micro Batch, computation done with a batch getting accumulated, high latency but allow optimisation over data set.
 
 
-###2. Structured Streaming Overview
+### 2. Structured Streaming Overview
 
 - Treating stream as table and new events as append of row to table.
 
@@ -76,7 +76,7 @@
 - Watermark: it is the threshold for late data arrival based on event time after which arriving data with older event time can be discarded. This avoids stream system to indefinitely hold on old state for data arriving late.
 
 
-###3. Example 1
+### 3. Example 1
 
 ```
 >>> from pyspark.sql.types import StructType, StructField, StringType, LongType, TimestampType
@@ -187,7 +187,7 @@ True
 >>> omsdf.awaitTermination()
 ```
 
-###3. Transformation
+### 4. Transformation
 
 - Select and Filter
 
@@ -234,7 +234,7 @@ Batch: 0
 +------+------+-------------------+
 ```
 
-###3. Join
+### 5. Join
 
 - Stream to Stream join (Supported inner, and conditional left and right outer)
 ```
@@ -401,7 +401,7 @@ Batch: 1
 +------+------+-------------------+------+------+-------------------+
 ```
 
-###4. Output Modes
+### 6. Output Modes
 
 - Stateless stream query: performs transformation before writting data to sink. Cleaning, Filter, Transforming, Partitioning, Saving in new format. Only APPEND output mode is applicable.
 	* Error for wrong output mode : org.apache.spark.sql.AnalysisException: Complete output mode not supported when there are no streaming aggregations on streaming DataFrames/Datasets;
@@ -412,7 +412,7 @@ Batch: 1
 - Statefull with Watermark: with aggregation with watermark APPEND output mode is applicable. This is because after watermark old state is removed and new states are added.
 
 
-###5. Trigger 
+### 7. Trigger 
 
 NOTE: For any trigger mode to act you need data, thus computation in streaming will never start without data even if time based triggering is set.
 
@@ -496,7 +496,7 @@ Batch: 1
 +--------------------+-----+
 ```
 
-###5. Event Time Based Processing
+### 8. Event Time Based Processing
 
 - Fixed Window Aggregation
 
@@ -554,7 +554,7 @@ https://databricks.com/blog/2017/10/17/arbitrary-stateful-processing-in-apache-s
 
 
 
-###6. Duplicates
+### 9. Duplicates
 
 - Performing data duplication without specifying a watermark is that the state that Structured Streaming needs to maintain will grow infinitely over the lifetime of your streaming application, and this may lead to out-of-memory issues. With watermarking, late data older than the watermark will be automatically dropped to avoid any possibility of duplicates.
 
@@ -587,7 +587,7 @@ Batch: 0
 ```
 
 
-###6. Fault Tolerance with checkpointing
+### 10. Fault Tolerance with checkpointing
 
 ```
 >>> omsdf = gbmsdf.writeStream.format("console").option("truncate", "false").option("checkpointLocation",
@@ -599,7 +599,7 @@ Batch: 0
 	2. Spark runtime change (in case not compatible check release note before upgrade spark binary)
 
 
-###7. Monitoring
+### 11. Monitoring
 
 ```
 >>> omsdf.status
