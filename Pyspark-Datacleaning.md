@@ -88,6 +88,8 @@ Now its time to seggregte the bad and good data.
 +--------------------+---+------+-------+-------+
 ```
 
+> Note, absence of data in ***id*** and ***name*** makes the data invalid.
+
 ***Bad Data***
 
 ```
@@ -103,3 +105,79 @@ Now its time to seggregte the bad and good data.
 ## Cleaning CSV data
 
 
+Lets look at the input data.
+
+```
+(venv) apple@apples-MacBook-Air data % cat csv.data 
+1,sankar,kolkata,india
+2,jade,berut,lebanon
+hgfgdj,55,
+3,kun,tiengen
+4,xun,singian,china
+5,slim
+```
+
+***Load Input***
+
+```
+>>> df = spark.read.text('data/csv.data')
+>>> df.show(truncate=False)
++----------------------+
+|value                 |
++----------------------+
+|1,sankar,kolkata,india|
+|2,jade,berut,lebanon  |
+|hgfgdj,55,            |
+|3,kun,tiengen         |
+|4,xun,singian,china   |
+|5,slim                |
++----------------------+
+```
+
+***Parse Data***
+
+```
+>>> schema1 = StructType([ StructField('id', LongType()), StructField('name', StringType()), StructField('city', StringType()), StructField('country', StringType()) ])
+>>> for i, v in enumerate(schema1) :
+...   df = df.withColumn( v.name, split( df['value'], ',' ).getItem(i).cast(v.dataType) )
+... 
+>>> df.show(truncate=False)
++----------------------+----+------+-------+-------+
+|value                 |id  |name  |city   |country|
++----------------------+----+------+-------+-------+
+|1,sankar,kolkata,india|1   |sankar|kolkata|india  |
+|2,jade,berut,lebanon  |2   |jade  |berut  |lebanon|
+|hgfgdj,55,            |null|55    |       |null   |
+|3,kun,tiengen         |3   |kun   |tiengen|null   |
+|4,xun,singian,china   |4   |xun   |singian|china  |
+|5,slim                |5   |slim  |null   |null   |
++----------------------+----+------+-------+-------+
+```
+
+***Good Data***
+
+```
+>>> df.na.drop( 'any', subset=['id', 'name'] ).show()
++--------------------+---+------+-------+-------+
+|               value| id|  name|   city|country|
++--------------------+---+------+-------+-------+
+|1,sankar,kolkata,...|  1|sankar|kolkata|  india|
+|2,jade,berut,lebanon|  2|  jade|  berut|lebanon|
+|       3,kun,tiengen|  3|   kun|tiengen|   null|
+| 4,xun,singian,china|  4|   xun|singian|  china|
+|              5,slim|  5|  slim|   null|   null|
++--------------------+---+------+-------+-------+
+
+```
+
+***Bad Data***
+
+```
+>>> df.filter( ( col('id').isNull() ) | ( col('name').isNull() ) ).show()
++----------+----+----+----+-------+
+|     value|  id|name|city|country|
++----------+----+----+----+-------+
+|hgfgdj,55,|null|  55|    |   null|
++----------+----+----+----+-------+
+
+```
