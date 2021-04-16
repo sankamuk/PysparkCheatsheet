@@ -29,4 +29,75 @@ Spark Structured Streaming API add the below features over the old DStream API.
 - Support for EVENT time based processing rather than incorrect process time based processing.
 
 
+## First Job (From Socket)
+
+Session Creation
+
+```
+    spark = SparkSession \
+            .builder \
+            .appName("Word Count") \
+            .config("spark.sql.shuffle.partitions", 2) \
+            .config("spark.streaming.stopGracefullyOnShutdown", "true") \
+            .getOrCreate()
+```
+ 
+Configure streaming source
+ 
+```
+     df = spark \
+        .readStream \
+        .format("socket") \
+        .option("host", "localhost") \
+        .option("port", "9999") \
+        .load()
+```
+ 
+> Note we use socket source where Spark will read data from socket.
+ 
+Configure stream sink
+
+```
+    stream = df.writeStream.format("console") \
+        .option("checkpointLocation", "checkpoint") \
+        .outputMode("append") \
+        .start()
+```
+
+> Since output mode is `append` only new data will be written to the sink.
+
+Start the socket which Spark will listen.
+
+```
+(venv) apple@apples-MacBook-Air PysparkStreaming % nc -lk 9999 <ENTER>
+hello <ENTER>
+hello world <ENTER>
+
+```
+
+In console where job running you should get output as below.
+
+```
+-------------------------------------------
+Batch: 1
+-------------------------------------------
++-----+
+|value|
++-----+
+|hello|
++-----+
+
+-------------------------------------------
+Batch: 2
+-------------------------------------------
++-----------+
+|      value|
++-----------+
+|hello world|
++-----------+
+```
+
+> Note the flow had no transformation, but you can run any Dataframe transformations (there are restrictions in most `action`).
+
+
 
