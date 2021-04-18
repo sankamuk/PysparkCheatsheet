@@ -271,6 +271,8 @@ Only important thing to note why writting to Kafka is that you need to serialize
                                           """)
 ```
 
+> Note we have two methord (struct and named_struct) to create a structure from a list of column, this can be fed to to_json or to_csv for serialization. The difference between struct and named_struct is that named_struct allow you to rename the columns. 
+
 Now you can create the streaming query and add Kafka sink.
 
 ```
@@ -321,3 +323,82 @@ You should not call awaitTermination() for any one query as this will stop the a
 spark.streams.awaitTermination()
 ```
 
+
+## Serialization and Deserialization for Read/Write to Kafka
+
+We have seen in all previous section about how we use JSON serialization to read and write to Kafka using Spark. We should note that though JSON is quite robust and expresive but it is not the only option. We have another test based serialization i.e. CSV and we have a binary and more efficient AVRO support also.
+
+Using CSV is exactly similar to JSON by just replacing to_json and from_json with its CSV counter part, i.e. to_csv and from_csv.
+
+## AVRO with Spark, Kafka Intergration
+
+Firstly you need to set the dependency like we did for Kafka before, i choose as usual Option 3.
+
+***Avro Sink***
+
+```
+    result_df = transformed_df.select( col("name").alias("key"),
+                                       to_avro(
+                                           struct("*")
+                                       ).alias("value") )
+				       
+    stream_query = result_df.writeStream \
+        .format("kafka") \
+        .queryName("Kafka Writter 03") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("topic", "spark-stream-03") \
+        .option("checkpointLocation", "checkpoint") \
+        .outputMode("append") \
+        .start()				    
+```
+
+> You need to import the Avro functions from the Avro package.
+
+```
+from pyspark.sql.avro.functions import to_avro
+```
+
+***Avro Source***
+
+To read Avro data you need `from_avro` function but it additionally need a Avro schema to read data. Here you have two options either you give Avro schema file or provide Schema registry details.
+
+In our example we show with a physical Avro file created with name `person.avsc` and content as below.
+
+```
+{
+  "namespace": "sanmuk.avro",
+  "type": "record",
+  "name": "Person",
+  "fields": [
+    {"name": "id", "type": ["int", "null"]},
+    {"name": "name", "type": ["string", "null"]},
+    {"name": "country", "type": ["string", "null"]},
+    {"name": "city", "type": ["string", "null"]}
+  ]
+}
+```
+
+> Note do not confuse Spark Dataframe schema with Avro schema these two are completely different.
+
+Now we load the schema as string in our programe to be passed to the from_avro function.
+
+```
+    schema1 = open("person.avsc", 'r').read()
+```
+
+Now we load the data.
+
+```
+    input_df = spark.readStream \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("subscribe", "spark-stream-03") \
+        .option("startingOffsets", "earliest") \
+        .load()
+
+    output_df = input_df.select(
+        from_avro(col("value"), schema1).alias("value")
+    ).select( col("value.*") )
+```
+
+Now its upto you what you wanna do with the output_df dataframe.
