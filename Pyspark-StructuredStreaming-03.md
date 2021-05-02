@@ -327,3 +327,5 @@ Batch: 4
 > Note how Spark looks up his state store finds and already available window to fit the new event into and calculates the new aggregate and publish results.
 
 
+***Note the biggest limitation of stream processing currently is Spark does not allow you to run analytical functions with Streaming results. Thus we will not be able to calculate running totals or the highest kind of operations with Spark streaming. You should write results per window to a destination like RDBMS and run further query over result of Spark job to achieve your desired output.***
+
