@@ -189,7 +189,7 @@ Batch: 6
 
 ***Finally*** we get expected result.
 
-> But note *Update* mode will work with updateable sink, i.e. database, nosql, record db, console. But sink like *File* will create duplicate records as it cannot updae inplace and new files will be created and thus will have duplicate records.
+> But note *Update* mode will work with updateable sink, i.e. database, nosql, record db, console. But sink like ***File*** will create duplicate records as it cannot updae inplace and new files will be created and thus will have duplicate records.
 
 
 ### Append mode with Aggregate Query (with Watermark)
@@ -294,5 +294,12 @@ Batch: 7
 
 > Note its only on arrival of event with time `20-04-2020-10-40` which makes window `2020-04-20 10:10:00, 2020-04-20 10:15:00` out of scope and eligible to be dropped is when the window is passed to sink.
 > All subsequent old event has no role in Streaming anyway.
+> This becomes a very powerful feature as it allow you to use ***File Sink*** with window aggregation again with no duplicate like Update mode as now with append mode it will be written only once.
+> Downside with Append mode is that result will be delayed by ***Watermark*** interval.
+
+
+
+
+
 
 
