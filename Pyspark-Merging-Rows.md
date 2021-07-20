@@ -36,14 +36,14 @@ If we want to merge rows for each person, we can do something like below:
 ```
 >>> df.groupBy('name', 'age').agg(
 ...   F.first('city', ignorenulls=True).alias('city'), 
-...   F.first('state', ignorenulls=True).alias('city'),
-...   F.first('country', ignorenulls=True).alias('city')
+...   F.first('state', ignorenulls=True).alias('state'),
+...   F.first('country', ignorenulls=True).alias('country')
 ... ).show()
-+----+---+-------+--------------+------+                                        
-|name|age|   city|          city|  city|
-+----+---+-------+--------------+------+
-| jad| 33|  paris|ille de france|france|
-| san| 32|kolkata|            wb| india|
-+----+---+-------+--------------+------+
++----+---+-------+--------------+----------+                                        
+|name|age|   city|          state|  country|
++----+---+-------+--------------+----------+
+| jad| 33|  paris|ille de france|    france|
+| san| 32|kolkata|            wb|     india|
++----+---+-------+--------------+----------+
 ```
 
