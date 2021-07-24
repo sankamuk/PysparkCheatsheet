@@ -5,6 +5,14 @@
 The best thing about Structured Streaming is it brings streaming applications as close to static dataframe handling, this is no difference with `Joins`. Its so similar to normal dataframe join that there is nothing much to share, thus lets see an example.
 
 
+## Stream to Static Inner Join are Stateless
+
+Let us understand the meaning, note first whats the implication of this statement. Once a action becomes Statefull, Spark has to manage statestore, why ?
+Because when Spark output result of batch action, it cannot confirm that it is done for the dataset for the batch, because there might be late arrival on way. Now we have seen before to remediate we use `watermarking` to keep Statestore managable.
+
+With Stream to Static Inner Join since one side of the join is always known Spark doesnot need to manage any state.
+
+
 #### Use Case: Lets try to update `last login` detail of an employee in a table in Cassandra with streaming `login` data comming to Kafka
 
 
