@@ -21,7 +21,10 @@ Application will perform the requirement with following operations:
 - Save dataframe to Cassandra.
 
 
-First lets add Spark session configuration to load [Cassandra connector](https://github.com/datastax/spark-cassandra-connector).
+##### Implementation
+
+
+- First lets add Spark session configuration to load [Cassandra connector](https://github.com/datastax/spark-cassandra-connector).
 
 ```
     spark = SparkSession \
@@ -38,7 +41,7 @@ First lets add Spark session configuration to load [Cassandra connector](https:/
 ```
 
 
-Next lets load static data from Cassandra
+- Next lets load static data from Cassandra
 
 ```
     sta_inp_df = spark.read\
@@ -49,7 +52,7 @@ Next lets load static data from Cassandra
 ```
 
 
-Next lead read streaming data from Kafka and transform in desired format
+- Next lead read streaming data from Kafka and transform in desired format
 
 ```
     str_inp_df = spark.readStream \
@@ -70,7 +73,7 @@ Next lead read streaming data from Kafka and transform in desired format
 ```
 
 
-At this point we have static and streaming dataframe, lets join and transform to our desired output format to synchronize back to Cassandra.
+- At this point we have static and streaming dataframe, lets join and transform to our desired output format to synchronize back to Cassandra.
 
 ```
     j_expr = str_trans_df.id == sta_inp_df.id
@@ -82,7 +85,7 @@ At this point we have static and streaming dataframe, lets join and transform to
 ```
 
 
-Now sinse Spark currently does not have a Cassandra `sink`, thus we use the generic `foreachBatch` to get our job done.
+- Now sinse Spark currently does not have a Cassandra `sink`, thus we use the generic `foreachBatch` to get our job done.
 
 ```
     stream_query = out_df.writeStream\
@@ -96,7 +99,7 @@ Now sinse Spark currently does not have a Cassandra `sink`, thus we use the gene
 ```
 
 
-Finally we implement the `write_to_cassandra` function.
+- Finally we implement the `write_to_cassandra` function.
 
 ```
 def write_to_cassandra(target_df, batch_id):
@@ -112,6 +115,8 @@ def write_to_cassandra(target_df, batch_id):
 
 > Note we write to Cassandra in append mode (as it supports Upsert) and we also sync it to console for validation.
 
+
+##### Validate setup
 
 - Set up Cassandra. You will find a sample article [here](https://mukherjeesankar.wordpress.com/2021/07/24/setup-local-cassandra-for-testing/). After setup if you view emp table in Cassandra you should see below output:
 
