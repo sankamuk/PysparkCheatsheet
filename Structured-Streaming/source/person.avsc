@@ -1,0 +1,11 @@
+{
+  "namespace": "sanmuk.avro",
+  "type": "record",
+  "name": "Person",
+  "fields": [
+    {"name": "id", "type": ["int", "null"]},
+    {"name": "name", "type": ["string", "null"]},
+    {"name": "country", "type": ["string", "null"]},
+    {"name": "city", "type": ["string", "null"]}
+  ]
+}
