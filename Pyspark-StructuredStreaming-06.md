@@ -13,7 +13,7 @@ Because when Spark output result of batch action, it cannot confirm that it is d
 With Stream to Static Inner Join since one side of the join is always known Spark doesnot need to manage any state.
 
 
-#### Use Case: Lets try to update `last login` detail of an employee in a table in Cassandra with streaming `login` data comming to Kafka
+### Use Case: Lets try to update `last login` detail of an employee in a table in Cassandra with streaming `login` data comming to Kafka
 
 
 > Note the choice of Cassandra is significant as it allow insert by key as an ***UPSERT*** operation, other similar choice would have been Apache HBase. 
@@ -29,7 +29,7 @@ Application will perform the requirement with following operations:
 - Save dataframe to Cassandra.
 
 
-##### Implementation
+### Implementation
 
 
 - First lets add Spark session configuration to load [Cassandra connector](https://github.com/datastax/spark-cassandra-connector).
@@ -124,7 +124,7 @@ def write_to_cassandra(target_df, batch_id):
 > Note we write to Cassandra in append mode (as it supports Upsert) and we also sync it to console for validation.
 
 
-##### Validate setup
+### Result
 
 - Set up Cassandra. You will find a sample article [here](https://mukherjeesankar.wordpress.com/2021/07/24/setup-local-cassandra-for-testing/). After setup if you view emp table in Cassandra you should see below output:
 
