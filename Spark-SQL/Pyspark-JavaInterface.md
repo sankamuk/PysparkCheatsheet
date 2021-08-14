@@ -72,6 +72,7 @@ sc = spark.sparkContext
 java_import(sc._gateway.jvm, "com.sanmuk.pyjava.Main")
 func = sc._gateway.jvm.Main()
 
+# Example of a function with no return type
 print("Usage 1: Call function with no return type.\n")
 print("Divide {0} by {1}:".format(10, 1))
 try:
@@ -80,6 +81,7 @@ except Exception as e:
     print("Error occured in division.")
     print(e.message)
 
+# Example of a Java function throwing exception handled in Pyspark
 print("Usage 2: Call function and handle exception.\n")
 print("Divide {0} by {1}:".format(10, 0))
 try:
@@ -89,6 +91,7 @@ except Exception as e:
     print(e.__class__)
     print(e.args)
 
+# Example of a Java function returning value processed in Pyspark
 print("Usage 3: Call function and accept return.\n")
 print("Add {0} with {1}:".format(10, 5))
 try:
