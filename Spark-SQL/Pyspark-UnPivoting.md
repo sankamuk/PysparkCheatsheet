@@ -34,7 +34,7 @@ from pyspark.sql import functions as F
 
 
 # Create Spark Session
-spark = SparkSession.builder.appName('Test Truncate RDBMS Table').enableHiveSupport().getOrCreate()
+spark = SparkSession.builder.appName('Unpivot Example').enableHiveSupport().getOrCreate()
 
 # Create a Dataframe
 s_df = spark.createDataFrame([('dab', 34, 5000),
