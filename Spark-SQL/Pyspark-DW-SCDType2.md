@@ -136,6 +136,7 @@ join_df = c_df_scd.join(d_df, c_df_scd.s_id == d_df.id, 'inner')
 
 up_new_df = join_df.\
     filter((c_df_scd.is_active == "Y") & ((c_df_scd.s_name != d_df.name) | (c_df_scd.s_city != d_df.city))).\
+    withColumn("s_dt", F.current_date()).\
     select("id", "name", "city", "s_dt", "e_dt", "is_active")
 print("\nActive Version of Updated Dataset")
 up_new_df.show()
@@ -156,7 +157,7 @@ Active Version of Updated Dataset
 +---+----+-----+----------+----------+---------+
 | id|name| city|      s_dt|      e_dt|is_active|
 +---+----+-----+----------+----------+---------+
-|  3| jad|paris|2021-08-07|2854-12-15|        Y|
+|  3| jad|paris|2021-08-15|2854-12-15|        Y|
 +---+----+-----+----------+----------+---------+
 
 
