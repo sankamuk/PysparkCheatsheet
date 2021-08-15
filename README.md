@@ -1,4 +1,4 @@
-# Pyspark Cheetsheet
+# Pyspark Cheatsheet
 
 ![Apache Spark](https://img.shields.io/badge/lang-Python-brightgreen.svg)
 ![Python](https://img.shields.io/badge/lib-Spark-brightgreen.svg)
