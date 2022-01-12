@@ -105,7 +105,7 @@ FSH.rename(PTH(src_file), PTH(dest_file))
 ### Delete temporary directory
 
 ```python
-FSH.delete(PTH(src_file))
+FSH.delete(PTH(tmp_dir), True)
 ```
 
 You are done!!!
