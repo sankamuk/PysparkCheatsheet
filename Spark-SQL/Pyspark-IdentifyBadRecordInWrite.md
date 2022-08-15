@@ -1,10 +1,20 @@
 # Identify Bad Record in Spark Writter
 
-DataFrameWriter handles batch writes and most of the time a single record fails the whole Job and there is no way to identify the bad records which failed to get itself inserted into the external storage system.
+DataFrameWriter handles batch writes and most of the time a single record fails the whole Job and there is no way to identify the bad records which failed to get itself inserted into the external storage system. In this recipe i try to handle this problem. 
+
+## Design
+
+Below is the way to solve the problem with Spark API only.
+
+- Iterate until source dataset is same as union of data in target DB table and error
+    - Read source data
+    - Filter out the already written data to target
+    - Filter out error already detected
+    - Identify error in current considered Dataset using binary search pattern. Breaking dataset in two partition and identify bad record exist in which partition by trying to write partition to DB. 
 
 ## Setup
 
-In this recipe i try to handle this problem. We create a Dataframe and try to insert into MySQL Table.
+We create a Dataframe and try to insert into MySQL Table.
 
 - Source Dataset:
 
@@ -44,6 +54,7 @@ mysql> desc my_data;
 
 ## Lets see the solution
 
+
 - Setup Spark Session and create dummy source data.
 
 ```python
@@ -67,6 +78,7 @@ df = spark.createDataFrame([(1, 'san'), (2, 'dab'), (3, 'ali'), (2, 'jew'), (5, 
 df.show()
 ```
 
+
 - Fetch intermediate data in DB and also error detected until now. This we will filter out so that it doesnot apper in current round of work.
 
 ```python
@@ -87,6 +99,7 @@ df.show()
 ```
 
 > Note above we save error record in local file system as we are running Spark in local mode. Update your code accordingly when running in distributed mode.
+
 
 - Break current dataset in two half and try save Dataframe into DB and identify error recursively.
 
@@ -125,4 +138,9 @@ except:
 ```
 
 > After execution if all record is good you will finish without error else you will be able to detect next bad record from dataset.
+
+
+- Continue repeating above steps until union of error data in file and target table data is equal to source data.
+
+In every iteration you should see a new record written to the error directory, in case you see no more error detected in an iteration it means there is no more iteration required.
 
