@@ -26,7 +26,9 @@ mysql> desc my_data;
 ```
 
 > Note in our dataset we identify two issue
+> 
 >      Integrity constrain violation as primary key '2' repeated twice
+>      
 >      Name column in one row exceeds maximum length
 
 - Lets see the solution
