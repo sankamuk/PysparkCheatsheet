@@ -9,7 +9,7 @@ In this recipe i try to handle this problem. We create a Dataframe and try to in
 | id | name |
 |---|---|
 |1|san|
-|---|---|
+
 
 - MySQL Table definition:
 
